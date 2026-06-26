@@ -3,6 +3,8 @@ import torch
 import pickle
 import warnings
 import logging
+import os
+from huggingface_hub import hf_hub_download
 
 warnings.filterwarnings("ignore")
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -33,13 +35,28 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # -----------------------------
 @st.cache_resource
 def load_model(model_dir="models"):
+    # Check if local folder exists, else load from Hugging Face Hub
+    if not os.path.exists(model_dir) or not os.path.isdir(model_dir):
+        # Default fallback or user specified secret repo name
+        if "HF_MODEL_REPO" in st.secrets:
+            model_dir = st.secrets["HF_MODEL_REPO"]
+        else:
+            model_dir = "Lokeshwar-09/context-aware-cyberbullying-detection"
+
     tokenizer = BertTokenizer.from_pretrained(model_dir)
     model     = BertForSequenceClassification.from_pretrained(model_dir)
     model.to(device)
     model.eval()
-    with open(f"{model_dir}/label_encoder.pkl", "rb") as f:
+    
+    if "/" in model_dir:
+        label_encoder_path = hf_hub_download(repo_id=model_dir, filename="label_encoder.pkl")
+    else:
+        label_encoder_path = os.path.join(model_dir, "label_encoder.pkl")
+        
+    with open(label_encoder_path, "rb") as f:
         encoder = pickle.load(f)
     return model, tokenizer, encoder
+
 
 
 # -----------------------------
@@ -202,8 +219,31 @@ st.markdown(
 try:
     model, tokenizer, encoder = load_model("models")
 except Exception as e:
-    st.error(f"Failed to load model: {e}")
+    st.error(f"### ❌ Failed to load model: {e}")
+    st.markdown("""
+    Since the trained model files are very large (approx. 438 MB), they are ignored by Git and not uploaded to GitHub.
+    
+    To fix this and deploy your app on Streamlit Cloud, you need to upload your model to **Hugging Face**:
+    
+    1. **Create a Hugging Face Account** at [huggingface.co](https://huggingface.co) if you don't have one.
+    2. **Create a new model repository** named `context-aware-cyberbullying-detection` (public).
+    3. **Upload the contents of your local `models/` folder** to the repository. The files required are:
+       - `model.safetensors`
+       - `config.json`
+       - `vocab.txt`
+       - `tokenizer_config.json`
+       - `special_tokens_map.json`
+       - `label_encoder.pkl`
+    
+    Alternatively, you can run the helper script `upload_to_hf.py` in your local directory to upload the model automatically:
+    ```bash
+    python upload_to_hf.py
+    ```
+    
+    *Note: If your Hugging Face username is different from `Lokeshwar-09`, you can define your repository in your Streamlit App settings under **Secrets** (e.g. `HF_MODEL_REPO = "your-username/context-aware-cyberbullying-detection"`).*
+    """)
     st.stop()
+
 
 
 # -----------------------------
