@@ -81,7 +81,7 @@ The model is built on top of `bert-base-uncased` and fine-tuned using a custom `
 ## 📁 Repository Structure
 
 ```text
-├── app.py               # Streamlit web dashboard interface
+├── streamlit_app.py     # Streamlit web dashboard interface
 ├── predict.py           # CLI prediction and inference script
 ├── preprocess.py        # Dataset preprocessing utilities
 ├── train_bert.py        # BERT model training and fine-tuning pipeline
@@ -133,7 +133,7 @@ models/
 ### Run the Web Dashboard
 Start the interactive Streamlit application in your browser:
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 ### Run CLI Prediction Tool
