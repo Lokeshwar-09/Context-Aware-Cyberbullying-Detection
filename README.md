@@ -1,17 +1,80 @@
 # 🛡️ Context-Aware Cyberbullying Detection using BERT
 
-A machine learning system that utilizes a fine-tuned **BERT (Bidirectional Encoder Representations from Transformers)** model to detect cyberbullying and harassment in online conversations. Unlike traditional classifiers, this system is **context-aware**, meaning it analyzes both the **previous comment** (context) and the **reply comment** together to make highly accurate classifications.
+A state-of-the-art machine learning system that utilizes a fine-tuned **BERT (Bidirectional Encoder Representations from Transformers)** model to detect cyberbullying and harassment in online social media conversations. 
+
+Unlike traditional text classifiers that inspect only single isolated comments, this system is **context-aware**—it evaluates both the **previous comment (context)** and the **reply comment** as a sentence pair to correctly identify nuanced bullying (such as sarcasm, retaliation, or context-dependent verbal abuse).
+
+---
+
+## 📐 System Architecture
+
+The following diagram illustrates how conversation data flows from input to the final classification result:
+
+```mermaid
+graph TD
+    subgraph Input Layer
+        A[Previous Comment / Context]
+        B[Reply Comment / Target]
+    end
+
+    subgraph Preprocessing & Tokenization
+        C[Text Cleaning: Regex, URLs & Extra Whitespace Removal]
+        D[BERT Tokenizer: bert-base-uncased]
+    end
+
+    subgraph Deep Learning Model
+        E["Sentence-Pair Encoding: [CLS] Context [SEP] Reply [SEP]"]
+        F["Fine-Tuned BERT Encoder (dropout=0.3)"]
+        G[Classification Head]
+    end
+
+    subgraph Output Dashboard
+        H[Softmax Probabilities]
+        I[Interactive CyberGuard AI UI]
+    end
+
+    A & B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+```
 
 ---
 
 ## 🚀 Features
 
-- **Context-Aware Classification**: Processes conversation pairs (Context + Reply) to detect sarcasm, replies triggered by harassment, and context-dependent bullying.
+- **Contextual Sentence-Pair BERT Classifier**: Integrates conversation history to eliminate false positives/negatives in context-dependent phrases.
 - **CyberGuard AI Dashboard**: A modern, interactive split-pane Streamlit web interface with responsive visualization.
-- **Dynamic Category Highlighting**: Color-coded status updates (Green for Safe, Orange for Harassment, Red for Hate Speech, Purple for Sexual Bullying).
-- **Proportional Metrics**: Real-time confidence metrics with custom-colored probability meters.
-- **One-Click Safety Actions**: Direct integration to file official complaints with the Cybercrime Portal if harmful content is detected.
-- **CLI Mode**: Fast command-line interface for quick testing and local scripting.
+- **Dynamic Category Highlighting**: Color-coded status updates matching specific categories:
+  - ✅ **Safe (Not Cyberbullying)**
+  - ⚠️ **Harassment Bullying**
+  - 🚨 **Hate Speech Bullying**
+  - 🔞 **Sexual Bullying**
+- **Dynamic Progress Charts**: Real-time confidence metrics with custom-colored HTML5 progress bars matching the category color theme.
+- **One-Click Safety Actions**: Direct integration to file official complaints with the National Cybercrime Portal if harmful content is detected.
+- **CLI Mode**: Fast command-line interface for local scripting and testing.
+
+---
+
+## 🧠 Model & Training Specifications
+
+The model is built on top of `bert-base-uncased` and fine-tuned using a custom `WeightedTrainer` subclass to address dataset class imbalances.
+
+### Hyperparameters
+
+| Parameter | Value | Description |
+| :--- | :--- | :--- |
+| **Epochs** | `3` | Number of training passes over the dataset |
+| **Batch Size** | `32` | Training and Evaluation batch size |
+| **Learning Rate** | `2e-5` | Initial learning rate for AdamW optimizer |
+| **Max Sequence Length** | `128` | Token length limit for input sequences |
+| **Dropout Probability** | `0.3` | Hidden layer and attention dropout to prevent overfitting |
+| **Weight Decay** | `0.01` | Weight decay rate for regularization |
+| **Warmup Ratio** | `0.1` | Proportion of training steps for learning rate warmup |
+| **Class Weights** | `Balanced` | Dynamic loss scaling to compensate for underrepresented classes |
 
 ---
 
@@ -61,7 +124,7 @@ models/
 ├── tokenizer_config.json
 └── vocab.txt
 ```
-*(Note: These files are automatically ignored by Git as they are too large for repository hosting.)*
+*(Note: These files are automatically ignored by Git to keep the repository size small.)*
 
 ---
 
@@ -81,18 +144,15 @@ python predict.py
 
 ---
 
-## 🧠 Model Specifications
-
-The classifier processes the text in a sentence-pair format:
-`[CLS] Previous Comment (Context) [SEP] Reply Comment [SEP]`
-
-The model is trained to output one of the following labels:
-- **Safe (Not Cyberbullying)** ✅
-- **Harassment Bullying** ⚠️
-- **Hate Speech Bullying** 🚨
-- **Sexual Bullying** 🔞
+## 📄 Dataset Preprocessing
+The `preprocess.py` module cleans input texts using:
+- Link/URL suppression (`http\S+`, `www\S+`)
+- Whitespace normalization
+- Control character removal
+- Automatic encoding recovery (tries `utf-8` and falls back to `latin1`)
+- Data cleaning (null entry removal and deduplication)
 
 ---
 
 ## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/Lokeshwar-09/Context-Aware-Cyberbullying-Detection/issues).
+Contributions, issues, and feature requests are welcome! Feel free to open a pull request or submit a ticket on the [issues page](https://github.com/Lokeshwar-09/Context-Aware-Cyberbullying-Detection/issues).
